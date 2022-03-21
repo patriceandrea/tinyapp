@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/patriceandrea/tinyapp/issues"
   },
-  "homepage": "https://github.com/patriceandrea/tinyapp#readme"
+  "homepage": "https://github.com/patriceandrea/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.3"
+  }
 }
