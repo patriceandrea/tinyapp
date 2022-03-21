@@ -77,12 +77,12 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-app.get('/u/:shortURL', function (req, res, next) {
+app.get('/u/:shortURL', function (req, res) {
   res.status(404);
   res.send('Url not Found');
 });
 
-app.get('/u/:shortURL', function (req, res, next) {
+app.get('/u/:shortURL', function (req, res) {
   res.status(302);
   res.send('Server has restarted and database may have been changed');
 });
