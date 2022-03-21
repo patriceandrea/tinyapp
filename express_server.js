@@ -6,7 +6,11 @@ app.set("view engine", "ejs");
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "9sm5xK": "http://www.google.com",
+  "urlLong": "https://pomofocus.io/app",
+  "shire": 'https://www.facebook.com/',
+  "isurfshfg": 'https://web.compass.lighthouselabs.ca/days/today'
+
 };
 
 app.get("/", (req, res) => {
@@ -44,7 +48,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
@@ -61,9 +65,24 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post("/urls", (req, res) => {
   console.log(req.body);
-  res.send("Ok");
+  res.send(` /urls/${generateRandomString()}`);
 });
 
 function generateRandomString() {
-  return 'shdjsf';
+  return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
 }
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
+app.get('/u/:shortURL', function (req, res, next) {
+  res.status(404);
+  res.send('Url not Found');
+});
+
+app.get('/u/:shortURL', function (req, res, next) {
+  res.status(302);
+  res.send('Server has restarted and database may have been changed');
+});
