@@ -37,14 +37,11 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
 
-  const urls = {
-    "urlLong": "https://pomofocus.io/app",
-    "shire": 'https://www.facebook.com/',
-    "isurfshfg": 'https://web.compass.lighthouselabs.ca/days/today'
+  const urls =
+    urlDatabase
+    ;
 
-  };
-
-  res.render("urls_index", { urls: urls });
+  res.render("urls_index", { urls });
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -61,6 +58,7 @@ app.get("/urls/new/:id", (req, res) => {
 });
 
 const bodyParser = require("body-parser");
+const { request } = require("express");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post("/urls", (req, res) => {
@@ -86,3 +84,15 @@ app.get('/u/:shortURL', function (req, res) {
   res.status(302);
   res.send('Server has restarted and database may have been changed');
 });
+
+
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect(`/urls`);
+});
+
+
+
+

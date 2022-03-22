@@ -2,6 +2,14 @@
 <html lang="en">
 
 <head>
+  <style>
+    .button {
+      box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+      background-color: white;
+      color: red;
+      border: 2px solid red;
+    }
+  </style>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -31,6 +39,7 @@
     <h3>My URLs</h3>
     <table class="table">
       <thead>
+
         <tr>
           <th scope="col">Short URL</th>
 
@@ -41,10 +50,19 @@
         <% for(let url in urls) { %>
           <tr>
             <td>
+
               <%= url %>
             </td>
             <td>
+
+
               <%= urls[url] %>
+            <td>
+              <form method="POST" action="/urls/<%= url %>/delete"><button type="submit"
+                  class="button button1">Delete</button>
+              </form>
+            </td>
+
             </td>
           </tr>
           <% } %>
