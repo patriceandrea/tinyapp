@@ -37,9 +37,7 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
 
-  const urls =
-    urlDatabase
-    ;
+  const urls = urlDatabase;
 
   res.render("urls_index", { urls });
 });
@@ -84,7 +82,6 @@ app.get('/u/:shortURL', function (req, res) {
   res.status(302);
   res.send('Server has restarted and database may have been changed');
 });
-
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
