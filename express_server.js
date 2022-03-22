@@ -55,6 +55,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+//showpage
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
@@ -64,7 +65,7 @@ app.get("/urls/new/:id", (req, res) => {
   res.render("urls_new");
 });
 
-
+// generates a new shorturl to the longurl 
 app.post("/urls", (req, res) => {
   const shortUrl = generateRandomString();
   const longUrl = req.body.longURL;
@@ -89,7 +90,7 @@ function generateRandomString() {
 //   res.send('Server has restarted and database may have been changed');
 // });
 
-
+// delete
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
