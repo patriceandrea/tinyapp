@@ -58,6 +58,14 @@
 
               <%= urls[url] %>
             <td>
+              <a href="/urls/<%= url %>" class="button button1">
+                Edit
+              </a>
+
+            </td>
+
+            </td>
+            <td>
               <form method="POST" action="/urls/<%= url %>/delete"><button type="submit"
                   class="button button1">Delete</button>
               </form>

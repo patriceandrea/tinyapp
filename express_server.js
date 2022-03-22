@@ -4,6 +4,10 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
+const bodyParser = require("body-parser");
+const { request } = require("express");
+app.use(bodyParser.urlencoded({ extended: true }));
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -36,10 +40,19 @@ app.get("/hello", (req, res) => {
 
 
 app.get("/urls", (req, res) => {
-
   const urls = urlDatabase;
-
   res.render("urls_index", { urls });
+});
+
+
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -47,41 +60,34 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
-});
-
 app.get("/urls/new/:id", (req, res) => {
   res.render("urls_new");
 });
 
-const bodyParser = require("body-parser");
-const { request } = require("express");
-app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send(` /urls/${generateRandomString()}`);
+  const shortUrl = generateRandomString();
+  const longUrl = req.body.longURL;
+  console.log(shortUrl, longUrl);
+  urlDatabase[shortUrl] = longUrl;
+  res.redirect(`/urls/${shortUrl}`);
 });
 
 function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
 }
 
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
-});
 
-app.get('/u/:shortURL', function (req, res) {
-  res.status(404);
-  res.send('Url not Found');
-});
 
-app.get('/u/:shortURL', function (req, res) {
-  res.status(302);
-  res.send('Server has restarted and database may have been changed');
-});
+// app.get('/u/:shortURL', function (req, res) {
+//   res.status(404);
+//   res.send('Url not Found');
+// });
+
+// app.get('/u/:shortURL', function (req, res) {
+//   res.status(302);
+//   res.send('Server has restarted and database may have been changed');
+// });
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -92,4 +98,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 
 
+
+// edit long url 
+app.post("/urls/:shortURL", (req, res) => {
+  const shortUrl = req.params.shortURL;
+  const longUrl = req.body.longUrl;
+  console.log(shortUrl, longUrl);
+  urlDatabase[shortUrl] = longUrl
+  res.redirect("/urls");
+});
 
