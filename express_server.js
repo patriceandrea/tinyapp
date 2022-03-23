@@ -62,7 +62,8 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { username: req.cookies ? req.cookies["username"] : null };
+  res.render("urls_new", templateVars);
 });
 
 //showpage
@@ -119,6 +120,7 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls");
 });
 
+// login username
 app.post("/login", (req, res) => {
   const username = req.body.username;
   res.cookie('username', username);
