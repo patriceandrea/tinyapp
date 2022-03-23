@@ -71,7 +71,17 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
+  let templateVars = { user: users[req.cookies["user_id"]] };
+  if (!templateVars.user) {
+    templateVars = {
+      user: users[req.cookies["user_id"]],
+      error: "You need to login first!"
+    }
+    res.render('urls_login', templateVars);
+
+  }
+
+
   res.render("urls_new", templateVars);
 });
 
@@ -93,8 +103,22 @@ app.post("/urls", (req, res) => {
   const longUrl = req.body.longURL;
   console.log(shortUrl, longUrl);
   urlDatabase[shortUrl] = longUrl;
-  res.redirect(`/urls/${shortUrl}`);
+  let templateVars = { user: users[req.cookies["user_id"]] };
+  if (!templateVars.user) {
+    templateVars = {
+      user: users[req.cookies["user_id"]],
+      error: "You need to login first!"
+    }
+    res.status(401).send('You need to login first!');
+
+  } else {
+    res.redirect(`/urls/${shortUrl}`);
+  }
+
+
 });
+
+
 
 function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
@@ -139,7 +163,7 @@ app.post("/login", (req, res) => {
 
   // lookup email in user Object 
   const findUser = findEmail(users, email);
-  console.log(findUser);
+
   if (!findUser) {
     return res.status(403).send('Email cannot be found');
   }
