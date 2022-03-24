@@ -2,6 +2,7 @@ const express = require("express");
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session')
 const bodyParser = require("body-parser");
+const findUserByEmail = require("./helpers")
 const { request } = require("express");
 const { render } = require("ejs");
 const bcrypt = require('bcryptjs');
