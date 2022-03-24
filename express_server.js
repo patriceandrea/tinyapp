@@ -3,7 +3,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
 const { request } = require("express");
 const { render } = require("ejs");
-
+const util = require("util");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -23,6 +23,7 @@ const findEmail = (users, email) => {
   return false;
 }
 
+
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
@@ -38,13 +39,49 @@ const urlDatabase = {
   },
   "shire": {
     longURL: 'https://www.facebook.com/',
-    user_id: "2de83he"
+    user_id: "user2RandomID"
   },
   "isurfshfg": {
     longURL: 'https://web.compass.lighthouselabs.ca/days/today',
     user_id: "87ybe6"
+  },
+  "foo": {
+    longURL: "http://ryan.com",
+    user_id: "user2RandomID"
+
   }
 };
+
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
+
+function isUserLoggedIn(userId) {
+  if (userId) {
+    let userInDatabase = users[userId];
+    if (userInDatabase) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function doesUserOwnUrl(userId, shortURL) {
+  if (urlDatabase[shortURL].user_id === userId) {
+    return true;
+  }
+  return false;
+}
+
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -66,12 +103,18 @@ app.get("/hello", (req, res) => {
   res.render("hello_world", templateVars);
 });
 
-
-
 app.get("/urls", (req, res) => {
-  const urls = urlDatabase;
+  const urls = {};
+  console.log(urlDatabase);
+  for (const url in urlDatabase) {
+    if (req.cookies["user_id"] === urlDatabase[url].user_id) {
+      urls[url] = {
+        longURL: urlDatabase[url].longURL, user_id: req.cookies["user_id"]
+      };
+    }
+  }
   const templateVars = {
-    urls,
+    urls: urls,
     user: users[req.cookies["user_id"]]
   }
   res.render("urls_index", templateVars);
@@ -83,24 +126,25 @@ app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     return res.status(404).send("shortURL not found");
   }
-
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = { user: users[req.cookies["user_id"]] };
-  if (!templateVars.user) {
+  let templateVars = {};
+  let cookieUserId = req.cookies["user_id"];
+  if (!isUserLoggedIn(cookieUserId)) {
     templateVars = {
-      user: users[req.cookies["user_id"]],
-      error: "You need to login first!"
+      user: cookieUserId,
+      error: "You need to login first!",
     }
     res.render('urls_login', templateVars);
-
+  } else {
+    templateVars = {
+      user: users[cookieUserId],
+    }
+    res.render("urls_new", templateVars);
   }
-
-
-  res.render("urls_new", templateVars);
 });
 
 //showpage
@@ -128,12 +172,9 @@ app.post("/urls", (req, res) => {
       error: "You need to login first!"
     }
     res.status(401).send('You need to login first!');
-
   } else {
     res.redirect(`/urls/${shortUrl}`);
   }
-
-
 });
 
 
@@ -141,19 +182,6 @@ app.post("/urls", (req, res) => {
 function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
 }
-
-
-
-
-// app.get('/u/:shortURL', function (req, res) {
-//   res.status(404);
-//   res.send('Url not Found');
-// });
-
-// app.get('/u/:shortURL', function (req, res) {
-//   res.status(302);
-//   res.send('Server has restarted and database may have been changed');
-// });
 
 // delete
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -163,14 +191,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 
-
-
 // edit long url 
 app.post("/urls/:shortURL", (req, res) => {
+  // is user login?
+
+  // does user own shortURL?
   const shortUrl = req.params.shortURL;
-  const longUrl = req.body.longUrl;
-  console.log(shortUrl, longUrl);
-  urlDatabase[shortUrl] = longUrl
+  const longURL = req.body.longURL;
+  urlDatabase[shortUrl] = longURL;
   res.redirect("/urls");
 });
 
@@ -194,18 +222,6 @@ app.post("/login", (req, res) => {
   res.redirect('/urls');
 });
 
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-}
 
 
 
