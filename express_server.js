@@ -24,12 +24,26 @@ const findEmail = (users, email) => {
 }
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
-  "urlLong": "https://pomofocus.io/app",
-  "shire": 'https://www.facebook.com/',
-  "isurfshfg": 'https://web.compass.lighthouselabs.ca/days/today'
-
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    user_id: "38jd48"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    user_id: "9sd4u3"
+  },
+  "urlLong": {
+    longURL: "https://pomofocus.io/app",
+    user_id: "2fw44e"
+  },
+  "shire": {
+    longURL: 'https://www.facebook.com/',
+    user_id: "2de83he"
+  },
+  "isurfshfg": {
+    longURL: 'https://web.compass.lighthouselabs.ca/days/today',
+    user_id: "87ybe6"
+  }
 };
 
 app.get("/", (req, res) => {
@@ -66,7 +80,11 @@ app.get("/urls", (req, res) => {
 
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  if (!urlDatabase[req.params.shortURL]) {
+    return res.status(404).send("shortURL not found");
+  }
+
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
@@ -87,7 +105,7 @@ app.get("/urls/new", (req, res) => {
 
 //showpage
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies["user_id"]] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
 
