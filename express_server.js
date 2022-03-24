@@ -3,7 +3,6 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
 const { request } = require("express");
 const { render } = require("ejs");
-const util = require("util");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -23,6 +22,26 @@ const findEmail = (users, email) => {
   return false;
 }
 
+function isUserLoggedIn(userId) {
+  if (userId) {
+    let userInDatabase = users[userId];
+    if (userInDatabase) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function doesUserOwnUrl(userId, shortURL) {
+  if (urlDatabase[shortURL].user_id === userId) {
+    return true;
+  }
+  return false;
+}
+
+function generateRandomString() {
+  return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
+}
 
 const urlDatabase = {
   "b2xVn2": {
@@ -69,22 +88,6 @@ const users = {
   }
 }
 
-function isUserLoggedIn(userId) {
-  if (userId) {
-    let userInDatabase = users[userId];
-    if (userInDatabase) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function doesUserOwnUrl(userId, shortURL) {
-  if (urlDatabase[shortURL].user_id === userId) {
-    return true;
-  }
-  return false;
-}
 
 
 app.get("/", (req, res) => {
@@ -98,22 +101,25 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+//Hello Page
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+//Hello Page w/ Greeting 
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello World' };
   res.render("hello_world", templateVars);
 });
 
+//Get MyURLS page
 app.get("/urls", (req, res) => {
   const urls = {};
-  console.log(urlDatabase);
   for (const url in urlDatabase) {
     if (req.cookies["user_id"] === urlDatabase[url].user_id) {
       urls[url] = {
-        longURL: urlDatabase[url].longURL, user_id: req.cookies["user_id"]
+        longURL: urlDatabase[url].longURL,
+        user_id: req.cookies["user_id"]
       };
     }
   }
@@ -124,7 +130,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-
+//Get to Create New URL
 app.get("/urls/new", (req, res) => {
   let templateVars = {};
   let cookieUserId = req.cookies["user_id"];
@@ -142,6 +148,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+//Get to LongUrl from ShortUrl
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     return res.status(404).send("shortURL not found");
@@ -150,17 +157,17 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+//ShortURL created
 app.get("/urls/new/:id", (req, res) => {
   res.render("urls_new");
 });
 
 
 
-// generates a new shorturl to the longurl 
+// Post Generating New ShortUrl to LongUrl 
 app.post("/urls", (req, res) => {
   const shortUrl = generateRandomString();
   const longUrl = req.body.longURL;
-  console.log(shortUrl, longUrl);
   urlDatabase[shortUrl] = longUrl;
   let templateVars = { user: users[req.cookies["user_id"]] };
   if (!templateVars.user) {
@@ -175,12 +182,7 @@ app.post("/urls", (req, res) => {
 });
 
 
-
-function generateRandomString() {
-  return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
-}
-
-//showpage
+//Showpage
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
@@ -193,20 +195,12 @@ app.get("/urls/:shortURL", (req, res) => {
       error: "You need to login first!"
     }
     res.render('urls_login', templateVars);
-  } else if (!doesUserOwnUrl(templateVars.user, templateVars.shortURL)) {
-    templateVars = {
-      shortURL: req.params.shortURL,
-      longURL: urlDatabase[req.params.shortURL].longURL,
-      user: users[req.cookies["user_id"]],
-      error: "User does not own url"
-    }
-    res.status(403).send(templateVars.error);
   } else {
     res.render("urls_show", templateVars);
   }
 });
 
-// delete
+// Post Delete
 app.post("/urls/:shortURL/delete", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
@@ -219,22 +213,15 @@ app.post("/urls/:shortURL/delete", (req, res) => {
       error: "You need to login first!"
     }
     res.status(401).send(templateVars.error);
-  } else if (!doesUserOwnUrl(templateVars.user, templateVars.shortURL)) {
-    templateVars = {
-      shortURL: req.params.shortURL,
-      longURL: urlDatabase[req.params.shortURL].longURL,
-      user: users[req.cookies["user_id"]],
-      error: "User does not own url"
-    }
-    res.status(403).send(templateVars.error);
   } else {
     const shortURL = req.params.shortURL;
     delete urlDatabase[shortURL];
     res.redirect(`/urls`);
   }
+
 });
 
-// edit long url 
+// Post edit Long Url 
 app.post("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
@@ -263,12 +250,10 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 });
 
-// login 
+// Post login 
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-
-  // lookup email in user Object 
   const findUser = findEmail(users, email);
 
   if (!findUser) {
@@ -287,6 +272,7 @@ app.post("/login", (req, res) => {
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+
   if (email === "") {
     return res.status(400).send('Email not written');
   } else if (password === '') {
@@ -299,13 +285,14 @@ app.post('/register', (req, res) => {
 
   const id = generateRandomString();
   users[id] = { id, email, password };
+
   res.cookie('user_id', id);
   return res.redirect('/urls');
 
 });
 
 
-// render to registration page 
+//Registration page 
 app.get("/register", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
@@ -315,15 +302,18 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
+//Logout
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
   res.redirect('/urls');
 })
 
+//Go Login Page
 app.get('/login', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
     user: users[req.cookies["user_id"]]
   };
+
   res.render("urls_login", templateVars);
 })
