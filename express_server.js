@@ -3,6 +3,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
 const { request } = require("express");
 const { render } = require("ejs");
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -13,13 +14,15 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const findEmail = (users, email) => {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
+//Helper function 
+const findUserByEmail = (database, email) => {
+  for (const user in database) {
+
+    if (database[user].email === email) {
+      return database[user];
     }
   }
-  return false;
+  return undefined;
 }
 
 function isUserLoggedIn(userId) {
@@ -75,6 +78,8 @@ const urlDatabase = {
   }
 };
 
+
+
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -86,8 +91,7 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk"
   }
-}
-
+};
 
 
 app.get("/", (req, res) => {
@@ -100,6 +104,7 @@ app.listen(PORT, () => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+
 
 //Hello Page
 app.get("/hello", (req, res) => {
@@ -250,44 +255,45 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 });
 
-// Post login 
+// Post /login 
 app.post("/login", (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  const findUser = findEmail(users, email);
+  // const email = req.body.email;
+  // const password = req.body.password;
+  const user = findUserByEmail(users, req.body.email);
 
-  if (!findUser) {
+  if (user && bcrypt.compareSync(req.body.password, user.password)) {
+
+    res.cookie('user_id', user.id);
+    res.redirect('/urls');
+  } else {
     return res.status(403).send('Email cannot be found');
   }
 
-  if (password !== findUser.password) {
-    return res.status(403).send('Password do not match');
-  }
-
-  res.cookie('user_id', findUser.id);
-  res.redirect('/urls');
 });
 
-
+// Post /register
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  if (email === "") {
+  if (!email) {
     return res.status(400).send('Email not written');
-  } else if (password === '') {
+  } else if (!password) {
     return res.status(400).send('Password not written');
   }
-  const emailLookup = findEmail(users, email)
+
+  const emailLookup = findUserByEmail(users, email);
   if (emailLookup) {
     return res.status(400).send('Email already exist');
   }
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  const userId = generateRandomString();
+  users[userId] = { id: userId, email, password: hashedPassword };
 
-  const id = generateRandomString();
-  users[id] = { id, email, password };
+  // res.cookie('user_id', emailLookup.user);
 
-  res.cookie('user_id', id);
-  return res.redirect('/urls');
+  // res.cookie('user_id', id);
+  res.redirect('/urls');
 
 });
 
