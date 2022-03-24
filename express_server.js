@@ -49,6 +49,10 @@ const urlDatabase = {
     longURL: "http://ryan.com",
     user_id: "user2RandomID"
 
+  },
+  "bar": {
+    longURL: "http://bar.com",
+    user_id: "userRandomID"
   }
 };
 
@@ -121,15 +125,6 @@ app.get("/urls", (req, res) => {
 });
 
 
-
-app.get("/u/:shortURL", (req, res) => {
-  if (!urlDatabase[req.params.shortURL]) {
-    return res.status(404).send("shortURL not found");
-  }
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
-});
-
 app.get("/urls/new", (req, res) => {
   let templateVars = {};
   let cookieUserId = req.cookies["user_id"];
@@ -147,10 +142,12 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-//showpage
-app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies["user_id"]] };
-  res.render("urls_show", templateVars);
+app.get("/u/:shortURL", (req, res) => {
+  if (!urlDatabase[req.params.shortURL]) {
+    return res.status(404).send("shortURL not found");
+  }
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  res.redirect(longURL);
 });
 
 app.get("/urls/new/:id", (req, res) => {
@@ -183,23 +180,87 @@ function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
 }
 
-// delete
-app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect(`/urls`);
+//showpage
+app.get("/urls/:shortURL", (req, res) => {
+  let templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL,
+    user: users[req.cookies["user_id"]]
+  };
+  if (!isUserLoggedIn(req.cookies["user_id"])) {
+    templateVars = {
+      user: users[req.cookies["user_id"]],
+      error: "You need to login first!"
+    }
+    res.render('urls_login', templateVars);
+  } else if (!doesUserOwnUrl(templateVars.user, templateVars.shortURL)) {
+    templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[req.cookies["user_id"]],
+      error: "User does not own url"
+    }
+    res.status(403).send(templateVars.error);
+  } else {
+    res.render("urls_show", templateVars);
+  }
 });
 
+// delete
+app.post("/urls/:shortURL/delete", (req, res) => {
+  let templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL,
+    user: users[req.cookies["user_id"]]
+  };
+  if (!isUserLoggedIn(req.cookies["user_id"])) {
+    templateVars = {
+      user: users[req.cookies["user_id"]],
+      error: "You need to login first!"
+    }
+    res.status(401).send(templateVars.error);
+  } else if (!doesUserOwnUrl(templateVars.user, templateVars.shortURL)) {
+    templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[req.cookies["user_id"]],
+      error: "User does not own url"
+    }
+    res.status(403).send(templateVars.error);
+  } else {
+    const shortURL = req.params.shortURL;
+    delete urlDatabase[shortURL];
+    res.redirect(`/urls`);
+  }
+});
 
 // edit long url 
 app.post("/urls/:shortURL", (req, res) => {
-  // is user login?
-
-  // does user own shortURL?
-  const shortUrl = req.params.shortURL;
-  const longURL = req.body.longURL;
-  urlDatabase[shortUrl] = longURL;
-  res.redirect("/urls");
+  let templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL,
+    user: users[req.cookies["user_id"]]
+  };
+  if (!isUserLoggedIn(req.cookies["user_id"])) {
+    templateVars = {
+      user: users[req.cookies["user_id"]],
+      error: "You need to login first!"
+    }
+    res.status(401).send(templateVars.error);
+  } else if (!doesUserOwnUrl(templateVars.user, templateVars.shortURL)) {
+    templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[req.cookies["user_id"]],
+      error: "User does not own url"
+    }
+    res.status(403).send(templateVars.error);
+  } else {
+    const shortUrl = req.params.shortURL;
+    const longURL = req.body.longURL;
+    urlDatabase[shortUrl] = longURL;
+    res.redirect("/urls");
+  }
 });
 
 // login 
@@ -221,8 +282,6 @@ app.post("/login", (req, res) => {
   res.cookie('user_id', findUser.id);
   res.redirect('/urls');
 });
-
-
 
 
 app.post('/register', (req, res) => {
