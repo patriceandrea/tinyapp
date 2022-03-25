@@ -44,9 +44,11 @@ function isUserLoggedIn(userId) {
 }
 
 function doesUserOwnUrl(userId, shortURL) {
+
   if (urlDatabase[shortURL].user_id === userId) {
     return true;
   }
+
   return false;
 }
 
@@ -251,7 +253,7 @@ app.post("/urls/:shortURL", (req, res) => {
       error: "You need to login first!"
     }
     res.status(401).send(templateVars.error);
-  } else if (!doesUserOwnUrl(templateVars.user, templateVars.shortURL)) {
+  } else if (!doesUserOwnUrl(templateVars.user.id, templateVars.shortURL)) {
     templateVars = {
       shortURL: req.params.shortURL,
       longURL: urlDatabase[req.params.shortURL].longURL,
@@ -260,9 +262,10 @@ app.post("/urls/:shortURL", (req, res) => {
     }
     res.status(403).send(templateVars.error);
   } else {
+
     const shortUrl = req.params.shortURL;
-    const longURL = req.body.longURL;
-    urlDatabase[shortUrl] = longURL;
+    const longURL = req.body.longUrl;
+    urlDatabase[shortUrl].longURL = longURL;
     res.redirect("/urls");
   }
 });
