@@ -244,6 +244,7 @@ app.post("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.session["user_id"]]
   };
+
   if (!isUserLoggedIn(req.session["user_id"])) {
     templateVars = {
       user: users[req.session["user_id"]],
