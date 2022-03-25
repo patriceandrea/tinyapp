@@ -6,6 +6,6 @@ const findUserByEmail = (email, database) => {
     }
   }
   return undefined;
-}
+};
 
 module.exports = findUserByEmail;

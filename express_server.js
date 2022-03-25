@@ -1,5 +1,5 @@
 const express = require("express");
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
 const findUserByEmail = require("./helpers")
@@ -19,19 +19,8 @@ app.use(cookieSession({
   name: 'session',
   keys: ['iAMaKEyyyyyyyyyy', 'IaMTheSecondKey'],
 
-  // maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
 
-//Helper function 
-// const findUserByEmail = (database, email) => {
-//   for (const user in database) {
-
-//     if (database[user].email === email) {
-//       return database[user];
-//     }
-//   }
-//   return undefined;
-// }
+}));
 
 function isUserLoggedIn(userId) {
   if (userId) {
@@ -41,7 +30,7 @@ function isUserLoggedIn(userId) {
     }
   }
   return false;
-}
+};
 
 function doesUserOwnUrl(userId, shortURL) {
 
@@ -50,11 +39,11 @@ function doesUserOwnUrl(userId, shortURL) {
   }
 
   return false;
-}
+};
 
 function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
-}
+};
 
 const urlDatabase = {
   "b2xVn2": {
@@ -135,7 +124,7 @@ app.get("/urls", (req, res) => {
     if (req.session.user_id === urlDatabase[url].user_id) {
       urls[url] = urlDatabase[url];
     }
-  }
+  };
 
   const templateVars = {
     urls: urls,
@@ -305,10 +294,7 @@ app.post('/register', (req, res) => {
   const userId = generateRandomString();
 
   users[userId] = { id: userId, email, password: hashedPassword };
-
-  // res.cookie('user_id', emailLookup.user);
   req.session.user_id = userId;
-  // res.cookie('user_id', id);
   res.redirect('/urls');
 
 });
@@ -326,7 +312,7 @@ app.get("/register", (req, res) => {
 
 //Logout
 app.post('/logout', (req, res) => {
-  req.session.user_id = null;
+  req.session = null;
   res.redirect('/urls');
 })
 
