@@ -1,6 +1,6 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
 const findUserByEmail = require("./helpers")
 const { request } = require("express");
@@ -129,13 +129,12 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const urls = {};
   for (const url in urlDatabase) {
-    if (req.session["user_id"] === urlDatabase[url].user_id) {
-      urls[url] = {
-        longURL: urlDatabase[url].longURL,
-        user_id: req.session["user_id"]
-      };
+
+    if (req.session.user_id === urlDatabase[url].user_id) {
+      urls[url] = urlDatabase[url];
     }
   }
+
   const templateVars = {
     urls: urls,
     user: users[req.session["user_id"]]
@@ -180,8 +179,12 @@ app.get("/urls/new/:id", (req, res) => {
 // Post Generating New ShortUrl to LongUrl 
 app.post("/urls", (req, res) => {
   const shortUrl = generateRandomString();
-  const longUrl = req.body.longURL;
-  urlDatabase[shortUrl] = longUrl;
+  const longURL = req.body.longURL;
+  urlDatabase[shortUrl] = {
+    user_id: req.session["user_id"],
+    longURL
+  };
+
   let templateVars = { user: users[req.session["user_id"]] };
   if (!templateVars.user) {
     templateVars = {
@@ -267,17 +270,16 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post("/login", (req, res) => {
   // const email = req.body.email;
   // const password = req.body.password;
-  const user = findUserByEmail(users, req.body.email);
+  const user = findUserByEmail(req.body.email, users);
 
   if (user && bcrypt.compareSync(req.body.password, user.password)) {
-
-
     req.session.user_id = user.id;
     res.redirect('/urls');
   } else {
-    return res.status(403).send('Email cannot be found');
-  }
 
+    res.status(403).send('Email cannot be found');
+
+  }
 });
 
 // Post /register
@@ -291,7 +293,7 @@ app.post('/register', (req, res) => {
     return res.status(400).send('Password not written');
   }
 
-  const emailLookup = findUserByEmail(users, email);
+  const emailLookup = findUserByEmail(email, users);
   if (emailLookup) {
     return res.status(400).send('Email already exist');
   }
