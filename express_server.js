@@ -1,5 +1,4 @@
 const express = require("express");
-// const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
 const findUserByEmail = require("./helpers")
@@ -14,7 +13,6 @@ app.set("view engine", "ejs");
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['iAMaKEyyyyyyyyyy', 'IaMTheSecondKey'],
