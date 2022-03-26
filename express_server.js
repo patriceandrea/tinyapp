@@ -90,6 +90,9 @@ const users = {
   }
 };
 
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
 
 app.get("/", (req, res) => {
   const urls = {};
@@ -106,19 +109,13 @@ app.get("/", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-
-
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
-
 
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello World' };
@@ -141,7 +138,6 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-
 app.get("/urls/new", (req, res) => {
   let templateVars = {};
   let cookieUserId = req.session["user_id"];
@@ -159,7 +155,6 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     return res.status(404).send("shortURL not found");
@@ -168,34 +163,9 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-
 app.get("/urls/new/:id", (req, res) => {
   res.render("urls_new");
 });
-
-
-
-app.post("/urls", (req, res) => {
-  const shortUrl = generateRandomString();
-  const longURL = req.body.longURL;
-  urlDatabase[shortUrl] = {
-    user_id: req.session["user_id"],
-    longURL
-  };
-
-  let templateVars = { user: users[req.session["user_id"]] };
-  if (!templateVars.user) {
-    templateVars = {
-      user: users[req.session["user_id"]],
-      error: "You need to login first!"
-    }
-    res.status(401).send('You need to login first!');
-  } else {
-    res.redirect(`/urls/${shortUrl}`);
-  }
-});
-
-
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
@@ -222,6 +192,44 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.session["user_id"]]
+  };
+
+  res.render("urls_register", templateVars);
+});
+
+app.get('/login', (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.session["user_id"]]
+  };
+
+  res.render("urls_login", templateVars);
+})
+
+
+app.post("/urls", (req, res) => {
+  const shortUrl = generateRandomString();
+  const longURL = req.body.longURL;
+  urlDatabase[shortUrl] = {
+    user_id: req.session["user_id"],
+    longURL
+  };
+
+  let templateVars = { user: users[req.session["user_id"]] };
+  if (!templateVars.user) {
+    templateVars = {
+      user: users[req.session["user_id"]],
+      error: "You need to login first!"
+    }
+    res.status(401).send('You need to login first!');
+  } else {
+    res.redirect(`/urls/${shortUrl}`);
+  }
+});
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   let templateVars = {
@@ -242,7 +250,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 
 });
-
 
 app.post("/urls/:shortURL", (req, res) => {
   let templateVars = {
@@ -274,7 +281,6 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 });
 
-
 app.post("/login", (req, res) => {
   // const email = req.body.email;
   // const password = req.body.password;
@@ -289,7 +295,6 @@ app.post("/login", (req, res) => {
 
   }
 });
-
 
 app.post('/register', (req, res) => {
   const email = req.body.email;
@@ -314,28 +319,9 @@ app.post('/register', (req, res) => {
 
 });
 
-
-app.get("/register", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[req.session["user_id"]]
-  };
-
-  res.render("urls_register", templateVars);
-});
-
-
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/urls');
 })
 
 
-app.get('/login', (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[req.session["user_id"]]
-  };
-
-  res.render("urls_login", templateVars);
-})
