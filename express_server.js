@@ -6,7 +6,7 @@ const { request } = require("express");
 const { render } = require("ejs");
 const bcrypt = require('bcryptjs');
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 
 
 app.set("view engine", "ejs");
@@ -114,18 +114,17 @@ app.get("/urls.json", (req, res) => {
 });
 
 
-//Hello Page
+
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-//Hello Page w/ Greeting 
+
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello World' };
   res.render("hello_world", templateVars);
 });
 
-//Get MyURLS page
 app.get("/urls", (req, res) => {
   const urls = {};
   for (const url in urlDatabase) {
@@ -142,7 +141,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-//Get to Create New URL
+
 app.get("/urls/new", (req, res) => {
   let templateVars = {};
   let cookieUserId = req.session["user_id"];
@@ -160,7 +159,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-//Get to LongUrl from ShortUrl
+
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     return res.status(404).send("shortURL not found");
@@ -169,14 +168,13 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-//ShortURL created
+
 app.get("/urls/new/:id", (req, res) => {
   res.render("urls_new");
 });
 
 
 
-// Post Generating New ShortUrl to LongUrl 
 app.post("/urls", (req, res) => {
   const shortUrl = generateRandomString();
   const longURL = req.body.longURL;
@@ -198,7 +196,7 @@ app.post("/urls", (req, res) => {
 });
 
 
-//Showpage
+
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
@@ -224,7 +222,7 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
-// Post Delete
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
@@ -245,7 +243,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 });
 
-// Post edit Long Url 
+
 app.post("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
@@ -276,7 +274,7 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 });
 
-// Post /login 
+
 app.post("/login", (req, res) => {
   // const email = req.body.email;
   // const password = req.body.password;
@@ -292,7 +290,7 @@ app.post("/login", (req, res) => {
   }
 });
 
-// Post /register
+
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -317,7 +315,6 @@ app.post('/register', (req, res) => {
 });
 
 
-//Registration page 
 app.get("/register", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
@@ -327,13 +324,13 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
-//Logout
+
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/urls');
 })
 
-//Go Login Page
+
 app.get('/login', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
