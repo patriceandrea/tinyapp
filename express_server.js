@@ -94,7 +94,18 @@ const users = {
 
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const urls = {};
+  for (const url in urlDatabase) {
+
+    if (req.session.user_id === urlDatabase[url].user_id) {
+      urls[url] = urlDatabase[url];
+    }
+  };
+  const templateVars = {
+    urls: urls,
+    user: users[req.session["user_id"]]
+  }
+  res.render("urls_index", templateVars);
 });
 
 app.listen(PORT, () => {
