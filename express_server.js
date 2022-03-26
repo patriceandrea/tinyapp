@@ -213,6 +213,14 @@ app.get("/urls/:shortURL", (req, res) => {
       error: "You need to login first!"
     }
     res.render('urls_login', templateVars);
+  } else if (!doesUserOwnUrl(templateVars.user.id, templateVars.shortURL)) {
+    templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[req.session["user_id"]],
+      error: "User does not own url"
+    }
+    res.status(403).send(templateVars.error);
   } else {
     res.render("urls_show", templateVars);
   }
